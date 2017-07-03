@@ -26,7 +26,14 @@ ggplot(sleep, aes(x = Days, y = Reaction)) +
   facet_wrap(~ Subject)
 ```
 
+Summary statistics by subject
 
+```{r}
+library(dplyr)
+sleep %>%
+  group_by(Subject) %>%
+  summarise(mean(Reaction))
+```
 
 
 
