@@ -72,6 +72,32 @@ mpg4 = mpg3 %>% group_by(manufacturer,year) %>% summarise(max_vol_per_cyl = max(
 library(tidyr)
 mpg5 = mpg4 %>% spread(year,max_vol_per_cyl)
 mpg6 = mpg5 %>% mutate(change = `2008` - `1999`)
-mpg6 %>% rename(max_vpc_1999 = `1999`, max_vpc_2008 = `2008` ) %>% gather(variable, value, max_vpc_1999, max_vpc_2008, -change) %>% View
+mpg6 %>% rename(max_vpc_1999 = `1999`, max_vpc_2008 = `2008` ) %>% gather(variable, value, max_vpc_1999, max_vpc_2008) %>% select(-change) %>% View
+```
+
+task 12-14 for data merging
+```{r}
+library(tidyverse)
+library(nycflights13)
+flights2 = flights %>% select(origin, year, month, day, hour, 
+    sched_dep_time, dep_delay, carrier)
+weather2 = weather %>% select(origin, year, month, day, hour, 
+    precip, wind_speed, visib)
+
+inner_join(flights, airlines)
+
+flights2 %>% full_join(weather2)
+
+weather2 %>% summarise(min_precip = min(precip, na.rm = TRUE), 
+    min_wind = min(wind_speed, na.rm = TRUE), max_visib = max(visib, 
+        na.rm = TRUE))
+
+good_weather_delays =  inner_join(flights2, weather2) %>% filter(precip == 0, wind_speed == 0, visib == 10)
+
+avg_good_weather_delays = good_weather_delays %>% group_by(carrier) %>% summarise(dep_delay = mean(dep_delay,na.rm = TRUE)) %>% arrange(desc(dep_delay)) %>% left_join(airlines)
+
+ranked_airline_labels <- avg_good_weather_delays %>% transmute(carrier, name = factor(-row_number(), labels = name))
+
+good_weather_delays %>% inner_join(ranked_airline_labels) %>% ggplot(aes(x = name, y = dep_delay)) + stat_summary() + coord_flip() + labs(x = "", y = "Average departure delay", title = "Departure delays under ideal weather conditions\nNYC airports, 2013")
 ```
 
